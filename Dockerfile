@@ -62,7 +62,7 @@ RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime \
 # -----------------------------------------------------------------------------
 RUN sed -i \
 	-e 's~^PasswordAuthentication yes~PasswordAuthentication no~g' \
-	-e 's~^#PermitRootLogin yes~PermitRootLogin no~g' \
+	-e 's~^#PermitRootLogin yes~PermitRootLogin without-password~g' \
 	-e 's~^#UseDNS yes~UseDNS no~g' \
 	-e 's~^\(.*\)/usr/libexec/openssh/sftp-server$~\1internal-sftp~g' \
 	/etc/ssh/sshd_config
@@ -109,7 +109,10 @@ RUN rm -rf /etc/ld.so.cache \
 	; rm -rf /usr/{{lib,share}/locale,share/{man,doc,info,cracklib,i18n},{lib,lib64}/gconv,bin/localedef,sbin/build-locale-archive} \
 	; rm -rf /{root,tmp,var/cache/{ldconfig,yum}}/* \
 	; > /etc/sysconfig/i18n
-
+# ------------------------------------------------------------------------------
+# Create users for aem and mongodb
+# ------------------------------------------------------------------------------
+RUN  adduser aem && gpasswd -a aem wheel && adduser mongod && gpasswd -a mongod wheel
 EXPOSE 22
 
 # -----------------------------------------------------------------------------
@@ -120,8 +123,8 @@ ENV SSH_AUTHORIZED_KEYS="" \
 	SSH_AUTOSTART_SSHD_BOOTSTRAP=true \
 	SSH_CHROOT_DIRECTORY="%h" \
 	SSH_INHERIT_ENVIRONMENT=false \
-	SSH_SUDO="ALL=(ALL) ALL" \
-	SSH_USER="app-admin" \
+	SSH_SUDO="ALL=(ALL) NOPASSWD: ALL" \
+	SSH_USER="centos" \
 	SSH_USER_FORCE_SFTP=false \
 	SSH_USER_HOME="/home/%u" \
 	SSH_USER_ID="500:500" \
